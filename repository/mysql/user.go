@@ -14,7 +14,7 @@ func (d MYSQLDB) IsPhoneNumberUnique(phoneNumber string) (bool,error){
 	
 	 //It must be in the exact same order as the columns defined in the database.
 	 //We also need to pass its pointer so that the scan function can set the values.
-	 err :=row.Scan(&user.ID,&user.Name,&user.PhoneNumber,&createdAt)
+	 err :=row.Scan(&user.ID,&user.Name,&user.PhoneNumber,&user.Password,&createdAt)
 	 if err!=nil {
 		if err == sql.ErrNoRows {
 			return true, nil
@@ -26,7 +26,7 @@ func (d MYSQLDB) IsPhoneNumberUnique(phoneNumber string) (bool,error){
 }
 
 func (d MYSQLDB) Register(u entity.User) (entity.User , error){
-	res ,err := d.db.Exec(`insert into users(name, phone_number) values(?,?)`, u.Name, u.PhoneNumber)
+	res ,err := d.db.Exec(`insert into users(name, phone_number, password) values(?,?,?)`, u.Name, u.PhoneNumber,u.Password)
 	if err!=nil{
 		return entity.User{},fmt.Errorf("can't execute command: %w",err)
 	}
