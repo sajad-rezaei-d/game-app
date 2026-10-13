@@ -10,6 +10,7 @@ import (
 type Repository interface {
 	IsPhoneNumberUnique (phoneNumber string) (bool,error)
 	Register(u entity.User) (entity.User , error)
+	GetUserByPhoneNumber(phoneNumber string) (entity.User,bool,error)
 }
 
 type Service struct{
@@ -59,7 +60,6 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse,error) {
 		return RegisterResponse{},fmt.Errorf("password length should be greater than 8")
 	}
 
-	
 	//create new user in storage 
 	user := entity.User{
 		ID: 0,
@@ -84,4 +84,33 @@ func getBcryptHash(password string) string{
 	pass := []byte(password)
 	hPass,_ :=bcrypt.GenerateFromPassword(pass, 0)
 	return string(hPass)
+}
+
+
+type LoginRequest struct{
+	PhoneNumber string `json:"phone_number"`
+	Password 	string `json:"password"`
+}
+
+type LoginResponse struct {
+	
+}
+
+func (s Service) Login(req LoginRequest) (LoginResponse,error){
+	// TODO: it would be better to user two separate method for existence check and getUserByPhoneNumber
+	user,exist,err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
+	if err!=nil{
+		return LoginResponse{},fmt.Errorf("unexpected error: %w",err)
+	}
+
+	if !exist {
+		return LoginResponse{},fmt.Errorf("record not found")
+	}
+
+
+	if bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(req.Password)) !=nil {
+		return LoginResponse{},fmt.Errorf("username or password isn't correct")
+	}
+
+	return LoginResponse{},nil
 }

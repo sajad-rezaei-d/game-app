@@ -37,3 +37,22 @@ func (d MYSQLDB) Register(u entity.User) (entity.User , error){
 
 	return u ,nil
 }
+
+func (d MYSQLDB) GetUserByPhoneNumber(phoneNumber string) (entity.User,bool,error){
+	user := entity.User{}
+	 var createdAt []uint8
+
+	 row := d.db.QueryRow(`select * from users where phone_number = ?`,phoneNumber)
+	
+	 //It must be in the exact same order as the columns defined in the database.
+	 //We also need to pass its pointer so that the scan function can set the values.
+	 err :=row.Scan(&user.ID,&user.Name,&user.PhoneNumber,&user.Password,&createdAt)
+	 if err!=nil {
+		if err == sql.ErrNoRows {
+			return entity.User{},false, nil
+		}
+		return entity.User{},false, fmt.Errorf("can't scan query result: %w",err)
+	 }
+
+	 return user, true, nil
+}
