@@ -58,19 +58,14 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse,error) {
 	if len(req.Password)<8 {
 		return RegisterResponse{},fmt.Errorf("password length should be greater than 8")
 	}
-	//hashing password
-	pass := []byte(req.Password)
-	hPass,err :=bcrypt.GenerateFromPassword(pass, 0)
-	if err!=nil {
-		return RegisterResponse{},fmt.Errorf("can't hashing password %w",err)
-	}
 
+	
 	//create new user in storage 
 	user := entity.User{
 		ID: 0,
 		PhoneNumber: req.PhoneNumber,
 		Name: req.Name,
-		Password: string(hPass),
+		Password: getBcryptHash(req.Password),
 	}
 
 	createdUser,err:=s.repo.Register(user)
@@ -82,4 +77,11 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse,error) {
 	return RegisterResponse{
 		User:createdUser,
 	},nil
+}
+
+
+func getBcryptHash(password string) string{
+	pass := []byte(password)
+	hPass,_ :=bcrypt.GenerateFromPassword(pass, 0)
+	return string(hPass)
 }
