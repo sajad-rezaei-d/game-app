@@ -6,15 +6,10 @@ import (
 	"gameApp/entity"
 )
 
-func (d MYSQLDB) IsPhoneNumberUnique(phoneNumber string) (bool,error){
-	 user := entity.User{}
-	 var createdAt []uint8
-
+func (d *MYSQLDB) IsPhoneNumberUnique(phoneNumber string) (bool,error){
 	 row := d.db.QueryRow(`select * from users where phone_number = ?`,phoneNumber)
 	
-	 //It must be in the exact same order as the columns defined in the database.
-	 //We also need to pass its pointer so that the scan function can set the values.
-	 err :=row.Scan(&user.ID,&user.Name,&user.PhoneNumber,&user.Password,&createdAt)
+	 _,err :=scanUser(row)
 	 if err!=nil {
 		if err == sql.ErrNoRows {
 			return true, nil
@@ -25,7 +20,7 @@ func (d MYSQLDB) IsPhoneNumberUnique(phoneNumber string) (bool,error){
 	 return false,nil
 }
 
-func (d MYSQLDB) Register(u entity.User) (entity.User , error){
+func (d *MYSQLDB) Register(u entity.User) (entity.User , error){
 	res ,err := d.db.Exec(`insert into users(name, phone_number, password) values(?,?,?)`, u.Name, u.PhoneNumber,u.Password)
 	if err!=nil{
 		return entity.User{},fmt.Errorf("can't execute command: %w",err)
@@ -38,15 +33,11 @@ func (d MYSQLDB) Register(u entity.User) (entity.User , error){
 	return u ,nil
 }
 
-func (d MYSQLDB) GetUserByPhoneNumber(phoneNumber string) (entity.User,bool,error){
-	user := entity.User{}
-	 var createdAt []uint8
-
+func (d *MYSQLDB) GetUserByPhoneNumber(phoneNumber string) (entity.User,bool,error){
+	
 	 row := d.db.QueryRow(`select * from users where phone_number = ?`,phoneNumber)
 	
-	 //It must be in the exact same order as the columns defined in the database.
-	 //We also need to pass its pointer so that the scan function can set the values.
-	 err :=row.Scan(&user.ID,&user.Name,&user.PhoneNumber,&user.Password,&createdAt)
+	 user,err :=scanUser(row)
 	 if err!=nil {
 		if err == sql.ErrNoRows {
 			return entity.User{},false, nil
@@ -55,4 +46,32 @@ func (d MYSQLDB) GetUserByPhoneNumber(phoneNumber string) (entity.User,bool,erro
 	 }
 
 	 return user, true, nil
+}
+
+func (d *MYSQLDB) GetUserByID(userID uint) (entity.User,error) {
+
+	 row := d.db.QueryRow(`select * from users where id = ?`,userID)
+	 //It must be in the exact same order as the columns defined in the database.
+	 //We also need to pass its pointer so that the scan function can set the values.
+	user,err :=scanUser(row)
+	 if err!=nil {
+		if err == sql.ErrNoRows {
+			return entity.User{}, fmt.Errorf("record not found")
+		}
+		return entity.User{},fmt.Errorf("can't scan query result: %w",err)
+	 }
+
+	 return user, nil
+}
+
+
+
+func scanUser(row *sql.Row) (entity.User,error) {
+	var createdAt []uint8
+	var user entity.User
+	 //It must be in the exact same order as the columns defined in the database.
+	 //We also need to pass its pointer so that the scan function can set the values.
+	err :=row.Scan(&user.ID,&user.Name,&user.PhoneNumber,&user.Password,&createdAt)
+
+	return user,err
 }
