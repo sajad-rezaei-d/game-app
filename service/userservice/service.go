@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"gameApp/entity"
 	"gameApp/pkg/phonenumber"
-	"time"
-
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,13 +14,18 @@ type Repository interface {
 	GetUserByID(userID uint) (entity.User,error)
 }
 
+type AuthGenerator interface {
+	CreateAccessToken(user entity.User) (string, error)
+	CreateRefreshToken(user entity.User)(string, error)
+}
+
 type Service struct{
-	signKey string
+	auth AuthGenerator
 	repo Repository
 }
 
-func New(repo Repository,signKey string) Service{
-	return Service{repo: repo, signKey: signKey}
+func New(authGenerator AuthGenerator,repo Repository) Service{
+	return Service{repo: repo, auth: authGenerator}
 }
 
 type RegisterRequest struct{
@@ -99,6 +101,7 @@ type LoginRequest struct{
 
 type LoginResponse struct {
 	AccessToken string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (s Service) Login(req LoginRequest) (LoginResponse,error){
@@ -123,12 +126,17 @@ func (s Service) Login(req LoginRequest) (LoginResponse,error){
 	// return session id to user
 
 	// The second way (generate jwt token)
-	token, err :=createToken(user.ID, s.signKey)
+	accessToken, err := s.auth.CreateAccessToken(user)
 	if err!=nil{
 		return LoginResponse{},fmt.Errorf("unexpected error: %w",err)
 	}
 
-	return LoginResponse{AccessToken: token},nil
+	refreshToken ,err := s.auth.CreateRefreshToken(user)
+	if err!=nil{
+		return LoginResponse{},fmt.Errorf("unexpected error: %w",err)
+	}
+
+	return LoginResponse{AccessToken: accessToken,RefreshToken: refreshToken},nil
 }
 
 type ProfileRequest struct {
@@ -156,18 +164,3 @@ func (s Service) Profile(req ProfileRequest) (ProfileResponse,error) {
 
 
 
-type Claims struct {
-	jwt.RegisteredClaims
-	UserID uint
-}
-//TODO: use method RS256 
-func createToken(userID uint, signKey string) (string, error) {
-	t := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
-		},
-		UserID: userID,
-	})
-
-	return t.SignedString([]byte(signKey))
-}
