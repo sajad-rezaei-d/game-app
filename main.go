@@ -1,16 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"gameApp/config"
+	"gameApp/delivery/httpserver"
 	"gameApp/repository/mysql"
 	"gameApp/service/authservice"
 	"gameApp/service/userservice"
-	"io"
-	"log"
-	"net/http"
 	"time"
-
 )
 
 const (
@@ -22,53 +19,32 @@ const (
 )
 
 func main(){
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health-check", healthCheckHandler)
-	mux.HandleFunc("/users/register", userRegisterHandler)
-	mux.HandleFunc("/users/login", userLoginHandler)
-	mux.HandleFunc("/users/profile", userProfileHandler)
+	fmt.Println("start echo server")
+	cfg := config.Config{
+		HTTPServer: config.HTTPServer{Port: 8080},
+		Auth: authservice.Config{
+			SignKey: JwtSignKey,
+			AccessExpirationTime: AccessTokenExpireDuration,
+			RefreshExpirationTime: RefreshTokenExpireDuration,
+			AccessSubject: AccessTokenSubject,
+			RefreshSubject: RefreshTokenSubject,
+		},
+		MySql: mysql.Config{
+			UserName: "gameapp",
+			Password: "gameappt0lk2o20",
+			Port: 3308,
+			Host: "localhost",
+			DBName: "gameapp-db",
+		},
+	}
+	authSvc , userSvc :=setupServices(cfg)
 
-	server:= http.Server{ Addr: ":8080", Handler: mux}
-	log.Fatal(server.ListenAndServe())
+	server := httpserver.New(cfg, authSvc, userSvc)	
+
+	server.Serve()
 
 }
-
-func userRegisterHandler(writer http.ResponseWriter, req *http.Request){
-	if req.Method!=http.MethodPost {
-		fmt.Fprintf(writer,`{"error": "invalid method"}`)
-	}
-
-	data,err := io.ReadAll(req.Body)
-	if err!=nil{
-		writer.Write(fmt.Appendf(nil, `{"error": "%s"}`, err.Error()))
-	}
-
-	var uReq userservice.RegisterRequest
-	err = json.Unmarshal(data,&uReq)
-	if err!=nil{
-		writer.Write(fmt.Appendf(nil, `{"error": "%s"}`, err.Error()))
-
-		return
-	}
-	authSvc := authservice.New(JwtSignKey, AccessTokenSubject, RefreshTokenSubject, AccessTokenExpireDuration, RefreshTokenExpireDuration)
-	mysqlRepo :=mysql.New()
-	userSvc := userservice.New(authSvc,mysqlRepo)
-
-	_,err = userSvc.Register(uReq)
-	if err!=nil{
-		writer.Write(fmt.Appendf(nil, `{"error": "%s"}`, err.Error()))
-
-		return
-	}
-	
-	writer.Write([]byte(`{"message": "user created"}`))
-}
-
-func healthCheckHandler(writer http.ResponseWriter,req *http.Request){
-	fmt.Fprintf(writer,`{"message": "everyting is good!"}`)
-}
-
-
+/*
 func userLoginHandler(writer http.ResponseWriter, req *http.Request){
 	if req.Method!=http.MethodPost {
 		fmt.Fprintf(writer,`{"error": "invalid method"}`)
@@ -148,4 +124,14 @@ func userProfileHandler(writer http.ResponseWriter,req *http.Request) {
 	
 	writer.Write(data)
 }
+*/
 
+func setupServices(cfg config.Config)(authservice.Service, userservice.Service) {
+	authSvc := authservice.New(cfg.Auth)
+	
+	MYSqlRepo := mysql.New(cfg.MySql)
+	userSvc:= userservice.New(authSvc, MYSqlRepo)
+
+	return authSvc,userSvc
+
+}
