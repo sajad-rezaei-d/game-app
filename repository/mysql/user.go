@@ -71,7 +71,7 @@ func scanUser(row *sql.Row) (entity.User,error) {
 	var user entity.User
 	 //It must be in the exact same order as the columns defined in the database.
 	 //We also need to pass its pointer so that the scan function can set the values.
-	err :=row.Scan(&user.ID,&user.Name,&user.PhoneNumber,&user.Password,&createdAt)
+	err :=row.Scan(&user.ID,&user.Name,&user.PhoneNumber,&createdAt,&user.Password)
 
 	return user,err
 }
