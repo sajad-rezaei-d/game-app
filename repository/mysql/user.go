@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"gameApp/entity"
+	"time"
 )
 
 func (d *MYSQLDB) IsPhoneNumberUnique(phoneNumber string) (bool,error){
@@ -67,7 +68,7 @@ func (d *MYSQLDB) GetUserByID(userID uint) (entity.User,error) {
 
 
 func scanUser(row *sql.Row) (entity.User,error) {
-	var createdAt []uint8
+	var createdAt time.Time
 	var user entity.User
 	 //It must be in the exact same order as the columns defined in the database.
 	 //We also need to pass its pointer so that the scan function can set the values.
