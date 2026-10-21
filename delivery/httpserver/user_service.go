@@ -32,7 +32,7 @@ func (s Server) userRegister(c echo.Context) error {
 
 	}
 
-	if err, fieldErrors:= s.userValidator.ValidateRegisterRequest(Req); err!=nil {
+	if fieldErrors,err:= s.userValidator.ValidateRegisterRequest(Req); err!=nil {
 		msg, code := httpmsg.Error(err)
 		return c.JSON(code, echo.Map{
 			"message":msg,

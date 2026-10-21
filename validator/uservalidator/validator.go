@@ -23,7 +23,7 @@ func New(repo Repository) Validator {
 	return Validator{repo: repo}
 }
 
-func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) (error,map[string]string) {
+func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) (map[string]string, error) {
 	const op = "uservalidator.ValidateRegisterRequest"
 
 	if err := validation.ValidateStruct(&req,
@@ -49,9 +49,9 @@ func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) (error,map[s
 				}
 			}
 		}
-		return richerror.New(op).WithMessage(errmsg.ErrormsgInvalidInput).
+		return fieldErrors,richerror.New(op).WithMessage(errmsg.ErrormsgInvalidInput).
 			WithKind(richerror.KindInvalid).
-			WithMeta(map[string]interface{}{"req": req}).WithErr(err),fieldErrors
+			WithMeta(map[string]interface{}{"req": req}).WithErr(err)
 	}
 
 	return nil,nil
