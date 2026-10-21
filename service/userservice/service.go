@@ -2,8 +2,8 @@ package userservice
 
 import (
 	"fmt"
+	"gameApp/dto"
 	"gameApp/entity"
-	"gameApp/pkg/phonenumber"
 	"gameApp/pkg/richerror"
 
 	"golang.org/x/crypto/bcrypt"
@@ -30,50 +30,10 @@ func New(authGenerator AuthGenerator,repo Repository) Service{
 	return Service{repo: repo, auth: authGenerator}
 }
 
-type RegisterRequest struct{
-	Name string			`json:"name"`
-	PhoneNumber string  `json:"phone_number"`
-	Password string		`json:"password"`
-}
 
-type UserInfo struct {
-	ID uint					`json:"id"`
-	PhoneNumber string		`json:"phone_number"`
-	Name string				`json:"name"`
-}
 
-type RegisterResponse struct {
-	User  UserInfo `json:"user"`
-}
-
-func (s Service) Register(req RegisterRequest) (RegisterResponse,error) {
+func (s Service) Register(req dto.RegisterRequest) (dto.RegisterResponse,error) {
 // TODO: we should verify phone number by verification code 
-	//validate phone number
-	if !phonenumber.IsValid(req.PhoneNumber){
-		return  RegisterResponse{},fmt.Errorf("phone number is not valid")
-	}
-	//check uniqueness of phone number
-	if isUnique ,err := s.repo.IsPhoneNumberUnique(req.PhoneNumber); err!=nil || !isUnique {
-		if err!=nil {
-			return RegisterResponse{},fmt.Errorf("unexpected error: %w",err)
-		}
-
-		if !isUnique {
-			return RegisterResponse{},fmt.Errorf("phone number is not Unique")
-		}
-	} 
-	
-	
-	//validate name 
-	if len(req.Name)<3 {
-		return RegisterResponse{},fmt.Errorf("name length should be greater than 3")
-	}
-
-	// TODO: check the password with regex pattern
-	//validate password
-	if len(req.Password)<8 {
-		return RegisterResponse{},fmt.Errorf("password length should be greater than 8")
-	}
 
 	//create new user in storage 
 	user := entity.User{
@@ -85,11 +45,11 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse,error) {
 
 	createdUser,err:=s.repo.Register(user)
 	if err!=nil{
-		return RegisterResponse{},fmt.Errorf("unexpected error: %w",err)
+		return dto.RegisterResponse{},fmt.Errorf("unexpected error: %w",err)
 	}
 
 	//return created user
-	return RegisterResponse{ UserInfo{
+	return dto.RegisterResponse{User: dto.UserInfo{
 		ID: createdUser.ID,
 		PhoneNumber: createdUser.PhoneNumber,
 		Name: createdUser.Name,
@@ -115,7 +75,7 @@ type Tokens struct {
 }
 
 type LoginResponse struct {
-	User UserInfo `json:"user"`
+	User dto.UserInfo `json:"user"`
 	Token Tokens  `json:"tokens"`
 }
 
@@ -154,7 +114,7 @@ func (s Service) Login(req LoginRequest) (LoginResponse,error){
 	}
 
 	return LoginResponse{
-		User : UserInfo{
+		User : dto.UserInfo{
 			ID: user.ID,
 			PhoneNumber: user.PhoneNumber,
 			Name: user.Name,

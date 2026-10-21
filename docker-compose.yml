@@ -2,7 +2,7 @@ services:
   gameapp-database:
     image: mysql:8.0
     ports:
-      - "3308:3306"
+      - "3309:3306"
     container_name: gameapp-database
     volumes:
       - dbdata:/var/lib/mysql

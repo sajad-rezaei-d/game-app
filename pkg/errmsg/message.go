@@ -1,7 +1,10 @@
 package errmsg
 
-const(
-	ErrorMsgNotFound = "record not found"
+const (
+	ErrorMsgNotFound            = "record not found"
 	ErrorMsgCantScanQueryREsult = "can't scan query result"
-	SomethingWentWrong = "something went wrong"
+	ErrorMsgSomethingWentWrong          = "something went wrong"
+	ErrorMsgPhoneNumberIsNotUnique      = "phone number is not Unique"
+	ErrorMsgPhoneNumberIsNotValid       = "phone number is not valid"
+	ErrormsgInvalidInput        = "ivalid input"
 )
