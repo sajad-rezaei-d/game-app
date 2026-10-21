@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"gameApp/entity"
 	"gameApp/pkg/phonenumber"
+	"gameApp/pkg/richerror"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -118,10 +120,12 @@ type LoginResponse struct {
 }
 
 func (s Service) Login(req LoginRequest) (LoginResponse,error){
+	const op= "userservice.login"
 	// TODO: it would be better to user two separate method for existence check and getUserByPhoneNumber
 	user,exist,err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
 	if err!=nil{
-		return LoginResponse{},fmt.Errorf("unexpected error: %w",err)
+		return LoginResponse{},richerror.New(op).WithErr(err).
+			WithMeta(map[string]interface{}{"phone_number": req.PhoneNumber})
 	}
 
 	if !exist {
@@ -173,13 +177,13 @@ type ProfileResponse struct {
 //all request inputs for interactor/service should be sanitized.
 
 func (s Service) Profile(req ProfileRequest) (ProfileResponse,error) {
+	const  op = "userservice.Profile"
 	//getUserByID
 	user, err := s.repo.GetUserByID(req.UserID)
 	if err!=nil{
-		// I have not expect the repository call return "record not found" error,
-		//  because I assume the interactor input is sanitized.
-		// TODO: we can use Rich Error.
-		return ProfileResponse{},fmt.Errorf("unexpected error: %w",err)
+		return ProfileResponse{},richerror.New(op).WithErr(err).
+		WithMeta(map[string]interface{}{"req": req})
+		
 	}
 
 	return ProfileResponse{Name: user.Name},nil

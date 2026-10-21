@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"gameApp/config"
 	"gameApp/delivery/httpserver"
-	"gameApp/repository/migrator"
+	//"gameApp/repository/migrator"
 	"gameApp/repository/mysql"
 	"gameApp/service/authservice"
 	"gameApp/service/userservice"
@@ -40,8 +40,8 @@ func main(){
 	}
 	
 	//TODO: add command for migrations
-	mgr := migrator.New(cfg.MySql)
-	mgr.Up()
+	//mgr := migrator.New(cfg.MySql)
+	//mgr.Up()
 
 	authSvc , userSvc :=setupServices(cfg)
 
