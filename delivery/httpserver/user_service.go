@@ -3,7 +3,6 @@ package httpserver
 import (
 	"gameApp/dto"
 	"gameApp/pkg/httpmsg"
-	"gameApp/service/userservice"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -11,7 +10,7 @@ import (
 
 func (s Server) userLogin(c echo.Context) error {
 
-	var Req userservice.LoginRequest
+	var Req dto.LoginRequest
 	if err := c.Bind(&Req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -61,7 +60,7 @@ func (s Server) userProfile(c echo.Context) error {
 	}
 
 
-	resp, err := s.userSvc.Profile(userservice.ProfileRequest{UserID: claims.UserID})
+	resp, err := s.userSvc.Profile(dto.ProfileRequest{UserID: claims.UserID})
 	if err != nil {
 		msg, code := httpmsg.Error(err)
 		return echo.NewHTTPError(code, msg)
