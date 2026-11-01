@@ -1,7 +1,7 @@
 package userhandler
 
 import (
-	"gameApp/dto"
+	"gameApp/param"
 	"gameApp/pkg/httpmsg"
 	"net/http"
 
@@ -23,7 +23,7 @@ func (h Handler) userProfile(c echo.Context) error {
 	}
 
 
-	resp, err := h.userSvc.Profile(dto.ProfileRequest{UserID: claims.UserID})
+	resp, err := h.userSvc.Profile(param.ProfileRequest{UserID: claims.UserID})
 	if err != nil {
 		msg, code := httpmsg.Error(err)
 		return echo.NewHTTPError(code, msg)
