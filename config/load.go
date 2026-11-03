@@ -27,6 +27,11 @@ func Load(configPath string) *Config{
 			// Transform the key.
 			k = strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(k, "GAMEAPP_")), "_", ".")
 
+			//TODO:this is just a workaround
+			// for muliword items such as "sign_key" that we should use like "GAMEAPP_AUTH_SIGN__KEY"
+			// find a better solution if needed.
+			k = strings.Replace(k, "..","_",-1)
+			
 			// Transform the value into slices, if they contain spaces.
 			// Eg: MYVAR_TAGS="foo bar baz" -> tags: ["foo", "bar", "baz"]
 			// This is to demonstrate that string values can be transformed to any type
