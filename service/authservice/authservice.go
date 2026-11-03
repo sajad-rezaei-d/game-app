@@ -3,17 +3,17 @@ package authservice
 import (
 	"errors"
 	"gameApp/entity"
+	"github.com/golang-jwt/jwt/v5"
 	"strings"
 	"time"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type Config struct {
-	SignKey string
-	AccessExpirationTime time.Duration
-	RefreshExpirationTime time.Duration
-	AccessSubject string
-	RefreshSubject string
+	SignKey               string        `koanf:"sign_key"`
+	AccessExpirationTime  time.Duration `koanf:"access_expiration_time"`
+	RefreshExpirationTime time.Duration `koanf:"refresh_expiration_time"`
+	AccessSubject         string        `koanf:"access_subject"`
+	RefreshSubject        string        `koanf:"refresh_subject"`
 }
 
 type Service struct {
@@ -21,21 +21,21 @@ type Service struct {
 }
 
 func New(cfg Config) Service {
-		return Service{
-			config: cfg,
-		}
+	return Service{
+		config: cfg,
+	}
 }
 
-func (s Service) CreateAccessToken(user entity.User) (string,error) {
-	return s.createToken(user.ID ,s.config.AccessSubject,s.config.AccessExpirationTime)
+func (s Service) CreateAccessToken(user entity.User) (string, error) {
+	return s.createToken(user.ID, s.config.AccessSubject, s.config.AccessExpirationTime)
 }
 
-func (s Service) CreateRefreshToken(user entity.User) (string,error) {
-	return s.createToken(user.ID, s.config.RefreshSubject , s.config.RefreshExpirationTime)
+func (s Service) CreateRefreshToken(user entity.User) (string, error) {
+	return s.createToken(user.ID, s.config.RefreshSubject, s.config.RefreshExpirationTime)
 }
 
-func (s Service) ParseToken(bearerToken string) (*Claims,error) {
-	
+func (s Service) ParseToken(bearerToken string) (*Claims, error) {
+
 	tokenStr := strings.Replace(bearerToken, "Bearer ", "", 1)
 	claims := &Claims{}
 
@@ -57,12 +57,11 @@ func (s Service) ParseToken(bearerToken string) (*Claims,error) {
 	return claims, nil
 }
 
-
 func (s Service) createToken(userID uint, subject string, expireDuration time.Duration) (string, error) {
-	//TODO: use method RS256 
+	//TODO: use method RS256
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject: subject,
+			Subject:   subject,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expireDuration)),
 		},
 		UserID: userID,
@@ -70,4 +69,3 @@ func (s Service) createToken(userID uint, subject string, expireDuration time.Du
 
 	return t.SignedString([]byte(s.config.SignKey))
 }
-

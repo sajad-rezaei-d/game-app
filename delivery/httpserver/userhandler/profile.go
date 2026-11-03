@@ -2,7 +2,7 @@ package userhandler
 
 import (
 	"gameApp/param"
-	"gameApp/pkg/constant"
+	cfg "gameApp/config"
 	"gameApp/pkg/httpmsg"
 	"gameApp/service/authservice"
 	"net/http"
@@ -12,7 +12,7 @@ import (
 
 func getClaims(c echo.Context) *authservice.Claims {
 	// let it crash
-	return c.Get(constant.AuthMiddlewareContextKey).(*authservice.Claims)
+	return c.Get(cfg.AuthMiddlewareContextKey).(*authservice.Claims)
 	/* defensive programing
 	claims := c.Get(constant.AuthMiddlewareContextKey)
 	fmt.Println("claims", claims)

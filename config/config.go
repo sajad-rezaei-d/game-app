@@ -6,12 +6,12 @@ import (
 )
 
 type HTTPServer struct {
-	Port int
+	Port int  `koanf:"port"`
 }
 
 type Config struct {
-	HTTPServer HTTPServer
-	Auth authservice.Config
-	MySql mysql.Config
+	HTTPServer HTTPServer	`koanf:"http_server"`
+	Auth authservice.Config	`koanf:"auth"`
+	MySql mysql.Config		`koanf:"mysql"`
 }
 

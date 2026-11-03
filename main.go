@@ -21,7 +21,9 @@ const (
 )
 
 func main(){
-	fmt.Println("start echo server")
+	//TODO: reaad config path from command line
+	cfg2:= config.Load("config.yml")
+	fmt.Printf("cfg2: %+v\n",cfg2)
 	cfg := config.Config{
 		HTTPServer: config.HTTPServer{Port: 8080},
 		Auth: authservice.Config{
