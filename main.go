@@ -5,7 +5,7 @@ import (
 	"gameApp/config"
 	"gameApp/delivery/httpserver"
 	"gameApp/validator/uservalidator"
-	//"gameApp/repository/migrator"
+	"gameApp/repository/migrator"
 	"gameApp/repository/mysql"
 	"gameApp/service/authservice"
 	"gameApp/service/userservice"
@@ -24,6 +24,7 @@ func main(){
 	//TODO: reaad config path from command line
 	cfg2:= config.Load("config.yml")
 	fmt.Printf("cfg2: %+v\n",cfg2)
+	//TODO: merge cfg with cfg2	
 	cfg := config.Config{
 		HTTPServer: config.HTTPServer{Port: 8080},
 		Auth: authservice.Config{
@@ -43,8 +44,8 @@ func main(){
 	}
 	
 	//TODO: add command for migrations
-	//mgr := migrator.New(cfg.MySql)
-	//mgr.Up()
+	mgr := migrator.New(cfg.MySql)
+	mgr.Up()
 
 	authSvc , userSvc, userValidator :=setupServices(cfg)
 
