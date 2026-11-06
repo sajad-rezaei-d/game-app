@@ -6,28 +6,27 @@ import (
 	"gameApp/param"
 )
 
+func (s Service) Register(req param.RegisterRequest) (param.RegisterResponse, error) {
+	// TODO: we should verify phone number by verification code
 
-func (s Service) Register(req param.RegisterRequest) (param.RegisterResponse,error) {
-// TODO: we should verify phone number by verification code 
-
-	//create new user in storage 
+	//create new user in storage
 	user := entity.User{
-		ID: 0,
+		ID:          0,
 		PhoneNumber: req.PhoneNumber,
-		Name: req.Name,
-		Password: getBcryptHash(req.Password),
+		Name:        req.Name,
+		Password:    getBcryptHash(req.Password),
+		Role:        entity.UserRole,
 	}
 
-	createdUser,err:=s.repo.Register(user)
-	if err!=nil{
-		return param.RegisterResponse{},fmt.Errorf("unexpected error: %w",err)
+	createdUser, err := s.repo.Register(user)
+	if err != nil {
+		return param.RegisterResponse{}, fmt.Errorf("unexpected error: %w", err)
 	}
 
 	//return created user
 	return param.RegisterResponse{User: param.UserInfo{
-		ID: createdUser.ID,
+		ID:          createdUser.ID,
 		PhoneNumber: createdUser.PhoneNumber,
-		Name: createdUser.Name,
-	}},nil
+		Name:        createdUser.Name,
+	}}, nil
 }
-

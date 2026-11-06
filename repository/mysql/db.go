@@ -20,6 +20,10 @@ type MYSQLDB struct {
 	db     *sql.DB
 }
 
+func (m *MYSQLDB) Conn() *sql.DB {
+	return m.db
+}
+
 func New(config Config) *MYSQLDB {
 	// parseTime=true changes the output type of DATE and DATETIME values to time.Time
 	// instead of []byte / string
